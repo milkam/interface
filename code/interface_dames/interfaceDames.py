@@ -10,7 +10,7 @@ class InterfaceDamier(tk.Frame):
     @author: Bryan Oakley, Camille Besse, Jean-Francis Roy
     """
 
-    def __init__(self, parent, taille_case):
+    def __init__(self, parent, taille_case,damier):
         """taille_case est la taille d'un côté d'une case en pixels."""
         # Definition du damier : # de cases
         self.n_lignes = 8
@@ -24,7 +24,7 @@ class InterfaceDamier(tk.Frame):
         self.couleur2 = "gray"
 
         # Pièces sur le damier
-        self.pieces = {}
+        self.damier = damier
 
         # Calcul de la taille du dessin
         canvas_width = self.n_colonnes * self.taille_case
@@ -50,21 +50,12 @@ class InterfaceDamier(tk.Frame):
         Ajoute une pièce sur le damier.
         """
 
-        # Caractères unicode des pièces
-        caracteres_unicode_pieces = {"PB": "\u26C0",
-                                    "DB": "\u26C1",
-                                    "PN": "\u26C2",
-                                    "DN": "\u26C3"}
-
         tempfont = ('Helvetica', self.taille_case//2)
         piece_unicode = caracteres_unicode_pieces[nom_piece[0:2]]
 
         # On "dessine" la pièce
         ligne, colonne = position
         self.canvas.create_text(ligne, colonne, text=piece_unicode, tags=(nom_piece, "piece"), font=tempfont)
-
-        # On ajoute la piece dans le dictionnaire
-        self.pieces[(ligne, colonne)] = nom_piece
 
         # On place la pièce dans le canvas (appel de placer_piece)
         self.placer_piece((ligne, colonne), nom_piece)
@@ -124,39 +115,12 @@ class InterfaceDamier(tk.Frame):
                     color = self.couleur2
 
         # On redessine les pieces
-        for position, nom in self.pieces.items():
-            self.placer_piece(position, nom)
+        for position, piece in self.damier.cases.items():
+            self.placer_piece(position, piece.nom)
 
         # On mets les pieces au dessus des cases
         self.canvas.tag_raise("piece")
         self.canvas.tag_lower("case")
-
-
-def initialise_jeu(plateau):
-        plateau.ajouter_piece((7, 0), "PB1")
-        plateau.ajouter_piece((7, 2), "PB2")
-        plateau.ajouter_piece((7, 4), "PB3")
-        plateau.ajouter_piece((7, 6), "PB4")
-        plateau.ajouter_piece((6, 1), "PB5")
-        plateau.ajouter_piece((6, 3), "PB6")
-        plateau.ajouter_piece((6, 5), "PB7")
-        plateau.ajouter_piece((6, 7), "PB8")
-        plateau.ajouter_piece((5, 0), "PB9")
-        plateau.ajouter_piece((5, 2), "PB10")
-        plateau.ajouter_piece((5, 4), "PB11")
-        plateau.ajouter_piece((5, 6), "PB12")
-        plateau.ajouter_piece((2, 1), "PN1")
-        plateau.ajouter_piece((2, 3), "PN2")
-        plateau.ajouter_piece((2, 5), "PN3")
-        plateau.ajouter_piece((2, 7), "PN4")
-        plateau.ajouter_piece((1, 0), "PN5")
-        plateau.ajouter_piece((1, 2), "PN6")
-        plateau.ajouter_piece((1, 4), "PN7")
-        plateau.ajouter_piece((1, 6), "PN8")
-        plateau.ajouter_piece((0, 1), "PN9")
-        plateau.ajouter_piece((0, 3), "PN10")
-        plateau.ajouter_piece((0, 5), "PN11")
-        plateau.ajouter_piece((0, 7), "PN12")
 
 
 
@@ -171,11 +135,18 @@ class JeuDeDames:
         self.partie = Partie()
 
         # On a besoin d'un damier, qu'on placera dans notre fenêtre...
-        self.interface_damier = InterfaceDamier(self.fenetre, 64)
+        self.interface_damier = InterfaceDamier(self.fenetre, 64,self.partie.damier)
         self.interface_damier.grid()
 
         # Par contre on aura probablement à modifier la classe InterfaceDamier pour
         # y inclure notre partie! À vous de jouer!
+        self.cadre = tk.LabelFrame(self.fenetre, text="cadre")
+        self.etiquette_test = tk.Label(self.cadre,text="bonjour", width=20)
+        self.etiquette_test.grid()
+        self.cadre.grid(row=0,column=1)
+        
+        self.fenetre.bind("<Button-1>",self.click)
+
 
 
         # Truc pour le redimensionnement automatique des éléments de la fenêtre.
@@ -190,3 +161,6 @@ class JeuDeDames:
         # Boucle principale.
         self.fenetre.mainloop()
 
+    def click(self, event):
+        
+        self.etiquette_test["text"] = "({},{},{})".format(event.x,event.y,event.widget.widgetName)

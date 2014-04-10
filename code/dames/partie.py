@@ -1,3 +1,5 @@
+#! /usr/bin/env python
+# -*- coding:Utf-8 -*-
 __author__ = "Jean-Francis Roy"
 from dames.damier import Damier
 from dames.exceptions import PositionSourceInvalide, PositionCibleInvalide, ProblemeChargement, ProblemeSauvegarde

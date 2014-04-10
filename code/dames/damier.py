@@ -1,3 +1,5 @@
+#! /usr/bin/env python
+# -*- coding:Utf-8 -*-
 __author__ = "Jean-Francis Roy"
 from dames.piece import Piece
 from dames.exceptions import PositionCibleInvalide, PositionSourceInvalide, ProblemeChargement
