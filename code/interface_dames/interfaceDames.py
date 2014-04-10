@@ -32,18 +32,35 @@ class InterfaceDamier(tk.Frame):
 
         # Initialisation de la fenêtre parent contenant le canvas
         tk.Frame.__init__(self, parent)
-
+        
+        # Ajout de menu
+        mainmenu = tk.Menu(parent)  ## Barre de menu
+        menuPartie = tk.Menu(mainmenu)  ## Menu fils menuPartie 
+        menuPartie.add_command(label="Nouvelle Partie", command="A FAIRE")  ## Ajout d'une option au menu fils menuFile 
+        menuPartie.add_command(label="Charger une Partie", command="A faire")
+        menuPartie.add_command(label="Sauvegarder une Partie", command="A faire")
+        menuPartie.add_command(label="Quitter", command=parent.quit)  
+  
+        menuHelp = tk.Menu(mainmenu) ## Menu Fils 
+        menuHelp.add_command(label="A propos", command="A faire") 
+  
+        mainmenu.add_cascade(label = "Partie", menu=menuPartie) 
+        mainmenu.add_cascade(label = "Aide", menu=menuHelp)
+        parent.config(menu = mainmenu)
+        
         # Initialisation du canvas
         self.canvas = tk.Canvas(self, borderwidth=0, highlightthickness=0, width=canvas_width, height=canvas_height,
                                background="white")
 
         # On place le canvas et le plateau (self) à l'aide de "grid".
-        self.canvas.grid(padx=2, pady=2, sticky=tk.N + tk.S + tk.E + tk.W)
-        self.grid(padx=4, pady=4, sticky=tk.N + tk.S + tk.E + tk.W)
+        self.canvas.grid(padx=2, pady=2, sticky=tk.N + tk.S + tk.E + tk.W) #redim la fenetre 
+        self.grid(padx=4, pady=4, sticky=tk.N + tk.S + tk.E + tk.W) # redim le plateau
 
         # Fait en sorte que le redimensionnement de la fenêtre redimensionne le damier
         self.canvas.bind("<Configure>", self.actualiser)
-
+        
+       
+        
 
     def ajouter_piece(self, position, nom_piece):
         """
