@@ -2,6 +2,7 @@
 # -*- coding:Utf-8 -*-
 
 import tkinter as tk
+from tkinter import *
 from dames.partie import Partie
 
 class InterfaceDamier(tk.Frame):
@@ -94,7 +95,16 @@ class InterfaceDamier(tk.Frame):
         self.canvas.itemconfigure(nom_piece, font=tempfont)
 
         self.canvas.coords(nom_piece, x, y)
-
+    
+    def selectCase(self, position, tailleCase):
+        x1 = position[0]*tailleCase
+        x2 = x1+tailleCase
+        y1 = position[1]*tailleCase
+        y2 = y1+tailleCase
+        color = "yellow"
+        self.canvas.delete("selected")
+        self.canvas.create_rectangle(x1, y1, x2, y2, outline="black", fill=color, tags="selected")
+        
 
     def actualiser(self, event):
         """
@@ -147,6 +157,7 @@ class JeuDeDames:
     def __init__(self):
         # On a besoin d'une fenêtre.
         self.fenetre = tk.Tk()
+        self.fenetre.title("Jeux de dames de Michel Tremblay et Jean-Francois Paty")
 
         # On a besoin d'une partie.
         self.partie = Partie()
@@ -155,16 +166,34 @@ class JeuDeDames:
         self.interface_damier = InterfaceDamier(self.fenetre, 64,self.partie.damier)
         self.interface_damier.grid()
 
-        # Par contre on aura probablement à modifier la classe InterfaceDamier pour
-        # y inclure notre partie! À vous de jouer!
-        self.cadre = tk.LabelFrame(self.fenetre, text="cadre")
-        self.etiquette_test = tk.Label(self.cadre,text="bonjour", width=20)
-        self.etiquette_test.grid()
-        self.cadre.grid(row=0,column=1)
-        
+        # Affichage du jouer à jouer ainsi que du nombre de pièces que chacun à mangé.
+        # Variable à utiliser pour afficher le joueur à jouer :
+        # self.etiq_joueur["text"] = ""
+        # Variable à utiliser pour afficher le pointage :
+        # joueur blanc : self.pointBlanc["text"] = ""
+        # joueur noir : self.pointNoir["text"] = ""
+        self.interface_droite = tk.LabelFrame(self.fenetre, borderwidth=1,relief=RAISED)
+        self.interface_droite 
+        self.joueur = tk.LabelFrame(self.interface_droite, borderwidth=1,relief=SUNKEN)
+        self.afich_joueur = tk.Label(self.joueur,text="Joueur à jouer:" , width=15,padx=5,pady=5)
+        self.etiq_joueur = tk.Label(self.joueur,text="", width=15,padx=5,pady=5)
+        self.afich_joueur.grid()
+        self.etiq_joueur.grid()
+        self.joueur.grid(row=0,column=0,padx=5,pady=5,sticky="ne")
+        self.pointage = tk.LabelFrame(self.interface_droite, borderwidth=1,relief=SUNKEN)
+        self.nomBlanc = tk.Label(self.pointage,text="Blanc: ", width=10)
+        self.nomNoir = tk.Label(self.pointage,text="Noir: ",width=10)
+        self.pointBlanc = tk.Label(self.pointage,text="0", width=5)
+        self.pointNoir = tk.Label(self.pointage,text="0",width=5)
+        self.nomBlanc.grid(row=0,column=0)
+        self.nomNoir.grid(row=1,column=0)
+        self.pointBlanc.grid(row=0,column=1)
+        self.pointNoir.grid(row=1,column=1)
+        self.pointage.grid(row=1,column=0,padx=5,pady=5)
+        self.etiquettetest = tk.Label(self.interface_droite,text="")
+        self.etiquettetest.grid()
+        self.interface_droite.grid(row=0,column=1,sticky="ne", padx=5, pady=5)
         self.fenetre.bind("<Button-1>",self.click)
-
-
 
         # Truc pour le redimensionnement automatique des éléments de la fenêtre.
         self.fenetre.grid_columnconfigure(0, weight=1)
@@ -178,6 +207,32 @@ class JeuDeDames:
         # Boucle principale.
         self.fenetre.mainloop()
 
+    def getDamierSize(self):
+        # Le damier est carré donc on veut juste avoir la plus petite grosseur du damier pour connaitre sa grosseur
+        damierwidth = self.interface_damier.winfo_width()
+        damierheight = self.interface_damier.winfo_height()
+        if damierwidth>damierheight:
+            return damierheight-12
+        else:
+            return damierwidth-12
+
+    def getClickPosition(self, size, event):
+        # On trouve dans quel case exactement on click (Coordonnée x,y)
+        x =   event.x // (size/8)
+        y =   event.y // (size/8)
+        return (int(x), int(y))
+
     def click(self, event):
-        
-        self.etiquette_test["text"] = "({},{},{})".format(event.x,event.y,event.widget.widgetName)
+        # Au click (donc selection d'une piece) on trouve avec le click qu'elle case on a clicker et on "HighLight" cette case
+        if event.widget.widgetName == "canvas":
+            damierSize = self.getDamierSize()
+            damierPosition = self.getClickPosition(damierSize,event)
+            if damierPosition[0] < 8 and damierPosition[1] < 8:
+                tailleCase = damierSize/8
+                self.interface_damier.selectCase(damierPosition,tailleCase)
+                self.etiquettetest["text"] = "({},{},{})".format(event.x,event.y,damierPosition)
+            
+
+
+    
+    
