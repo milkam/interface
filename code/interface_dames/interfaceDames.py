@@ -3,7 +3,12 @@
 
 import tkinter as tk
 from tkinter import *
+from tkinter import messagebox
 from dames.partie import Partie
+
+
+  
+        
 
 class InterfaceDamier(tk.Frame):
     """
@@ -34,20 +39,6 @@ class InterfaceDamier(tk.Frame):
         # Initialisation de la fenêtre parent contenant le canvas
         tk.Frame.__init__(self, parent)
         
-        # Ajout de menu
-        mainmenu = tk.Menu(parent)  ## Barre de menu
-        menuPartie = tk.Menu(mainmenu)  ## Menu fils menuPartie 
-        menuPartie.add_command(label="Nouvelle Partie", command="A FAIRE")  ## Ajout d'une option au menu fils menuFile 
-        menuPartie.add_command(label="Charger une Partie", command="A faire")
-        menuPartie.add_command(label="Sauvegarder une Partie", command="A faire")
-        menuPartie.add_command(label="Quitter", command=parent.quit)  
-  
-        menuHelp = tk.Menu(mainmenu) ## Menu Fils 
-        menuHelp.add_command(label="A propos", command="A faire") 
-  
-        mainmenu.add_cascade(label = "Partie", menu=menuPartie) 
-        mainmenu.add_cascade(label = "Aide", menu=menuHelp)
-        parent.config(menu = mainmenu)
         
         # Initialisation du canvas
         self.canvas = tk.Canvas(self, borderwidth=0, highlightthickness=0, width=canvas_width, height=canvas_height,
@@ -60,8 +51,7 @@ class InterfaceDamier(tk.Frame):
         # Fait en sorte que le redimensionnement de la fenêtre redimensionne le damier
         self.canvas.bind("<Configure>", self.actualiser)
         
-       
-        
+    
 
     def ajouter_piece(self, position, nom_piece):
         """
@@ -158,12 +148,18 @@ class JeuDeDames:
         # On a besoin d'une fenêtre.
         self.fenetre = tk.Tk()
         self.fenetre.title("Jeux de dames de Michel Tremblay et Jean-Francois Paty")
-
+               
+        "définition des menus:"
+        self.MenuJeu(self.fenetre)
+        
         # On a besoin d'une partie.
         self.partie = Partie()
 
         # On a besoin d'un damier, qu'on placera dans notre fenêtre...
         self.interface_damier = InterfaceDamier(self.fenetre, 64,self.partie.damier)
+        
+        
+        
         self.interface_damier.grid()
 
         # Affichage du jouer à jouer ainsi que du nombre de pièces que chacun à mangé.
@@ -232,7 +228,33 @@ class JeuDeDames:
                 self.interface_damier.selectCase(damierPosition,tailleCase)
                 self.etiquettetest["text"] = "({},{},{})".format(event.x,event.y,damierPosition)
             
-
-
+    def MenuJeu(self, fenetre):
+        
+        mainmenu = tk.Menu(fenetre)  ## Barre de menu 
+        menuPartie = tk.Menu(mainmenu)  ## Menu fils menuExample 
+        #menuExample.add_command(label="Affiche", command=fenetre.Affiche)  ## Ajout d'une option au menu fils menuFile 
+        menuPartie.add_command(label="Nouvelle Partie", command=self.NouveauJeu)
+        menuPartie.add_command(label="Charger une Partie", command=self.ChargerJeu)
+        menuPartie.add_command(label="Sauvegarder une partie", command=self.SauveJeu)
+        menuPartie.add_command(label="Quitter", command=fenetre.quit) 
+  
+        menuHelp = tk.Menu(mainmenu) ## Menu Fils 
+        menuHelp.add_command(label="A propos", command=self.aPropos) 
+  
+        mainmenu.add_cascade(label = "Partie", menu=menuPartie) 
+        mainmenu.add_cascade(label = "Aide", menu=menuHelp)
+        fenetre.config(menu = mainmenu)
+        
+    def aPropos(self):
+        
+        tk.messagebox.showinfo("A propos", "Version 1.0")
     
-    
+    def NouveauJeu(self):
+        """ A Faire JF """
+        pass
+    def ChargerJeu(self):
+        """ A Faire JF """
+        pass
+    def SauveJeu(self):
+        """ A Faire JF """
+        pass
