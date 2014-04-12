@@ -82,10 +82,10 @@ class Piece:
         Faire un print(une_piece) affichera un caractère unicode représentant le dessin d'une pièce.
         """
         if self.est_blanc() and self.est_pion():
-            return "\u26C0"
+            return "o"
         elif self.est_blanc() and self.est_dame():
-            return "\u26C1"
+            return "O"
         elif self.est_noir() and self.est_pion():
-            return "\u26C2"
+            return "x"
         else:
-            return "\u26C3"
+            return "X"

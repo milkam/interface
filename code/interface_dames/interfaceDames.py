@@ -6,8 +6,6 @@ from tkinter import *
 from tkinter import messagebox
 from dames.partie import Partie
 
-
-  
         
 
 class InterfaceDamier(tk.Frame):
@@ -53,18 +51,19 @@ class InterfaceDamier(tk.Frame):
         
     
 
-    def ajouter_piece(self, position, nom_piece):
+    def ajouter_piece(self, position, piece):
         """
         Ajoute une pièce sur le damier.
         """
 
         tempfont = ('Helvetica', self.taille_case//2)
-        piece_unicode = caracteres_unicode_pieces[nom_piece[0:2]]
+        #piece_unicode = caracteres_unicode_pieces[nom_piece[0:2]]
 
         # On "dessine" la pièce
         ligne, colonne = position
-        self.canvas.create_text(ligne, colonne, text=piece_unicode, tags=(nom_piece, "piece"), font=tempfont)
-
+        nom_piece = piece.nom
+        self.canvas.create_text(ligne, colonne, text=piece, tags=(nom_piece, "piece"), font=tempfont)
+        
         # On place la pièce dans le canvas (appel de placer_piece)
         self.placer_piece((ligne, colonne), nom_piece)
 
@@ -73,7 +72,7 @@ class InterfaceDamier(tk.Frame):
         """
         Place une pièce à la position donnée (ligne, colonne).
         """
-
+        #tk.messagebox.showinfo("wow",self.canvas.itemcget(nom_piece, 'text')) 
         ligne, colonne = position
 
         # Placer les pieces au centre des cases.
@@ -83,24 +82,38 @@ class InterfaceDamier(tk.Frame):
         # On change la taille de la police d'écriture selon la taille actuelle des cases.
         tempfont = ('Helvetica', self.taille_case//2)
         self.canvas.itemconfigure(nom_piece, font=tempfont)
-
         self.canvas.coords(nom_piece, x, y)
     
-    def selectCase(self, position, tailleCase):
-        x1 = position[0]*tailleCase
-        x2 = x1+tailleCase
-        y1 = position[1]*tailleCase
-        y2 = y1+tailleCase
+    def selectCase(self, position):
+        # Selection de la case (afficher d'une manière graphique la case selectionné)
+        x1 = position[0] * self.taille_case
+        x2 = x1+self.taille_case
+        y1 = position[1]*self.taille_case
+        y2 = y1+self.taille_case
         color = "yellow"
         self.canvas.delete("selected")
         self.canvas.create_rectangle(x1, y1, x2, y2, outline="black", fill=color, tags="selected")
-        
+        # on met les pièces au dessus de la selection de case
+        self.canvas.tag_raise("piece")
+
+    def ActualiserPieces(self,Create):
+        # On redessine les pieces
+        if Create:
+            for position, piece in self.damier.cases.items():
+                self.ajouter_piece(position, piece)
+        else:
+            for position, piece in self.damier.cases.items():
+                self.placer_piece(position, piece.nom)
+
+        # On mets les pieces au dessus des cases
+        self.canvas.tag_raise("piece")
+        self.canvas.tag_lower("case")    
 
     def actualiser(self, event):
         """
         Redessine le damier lorsque la fenetre est redimensionnée.
         """
-
+        
         # Calcul de la nouvelle taille du damier
         x_size = int((event.width - 1) / self.n_colonnes)
         y_size = int((event.height - 1) / self.n_lignes)
@@ -108,6 +121,8 @@ class InterfaceDamier(tk.Frame):
 
         # On efface les cases
         self.canvas.delete("case")
+        # On efface la case selected si il y en a une
+        self.canvas.delete("selected")
 
         # On les redessine
         color = self.couleur2
@@ -130,14 +145,7 @@ class InterfaceDamier(tk.Frame):
                     color = self.couleur1
                 else:
                     color = self.couleur2
-
-        # On redessine les pieces
-        for position, piece in self.damier.cases.items():
-            self.placer_piece(position, piece.nom)
-
-        # On mets les pieces au dessus des cases
-        self.canvas.tag_raise("piece")
-        self.canvas.tag_lower("case")
+        self.ActualiserPieces(False)
 
 
 
@@ -157,9 +165,6 @@ class JeuDeDames:
 
         # On a besoin d'un damier, qu'on placera dans notre fenêtre...
         self.interface_damier = InterfaceDamier(self.fenetre, 64,self.partie.damier)
-        
-        
-        
         self.interface_damier.grid()
 
         # Affichage du jouer à jouer ainsi que du nombre de pièces que chacun à mangé.
@@ -168,24 +173,34 @@ class JeuDeDames:
         # Variable à utiliser pour afficher le pointage :
         # joueur blanc : self.pointBlanc["text"] = ""
         # joueur noir : self.pointNoir["text"] = ""
+        # message au joueur : self.message["text"] = "" ne pas mettre un message trop long ie : vous devez prendre\n un pion (un saut de ligne doit être là pour wrapper le text)
+        # historique de jeux : self.historique["text"] = ""   N'aficher que les 15 dernier move ie : blanc : 1,2 -> 2,3\nnoir : 5,4 -> 6,3\n
         self.interface_droite = tk.LabelFrame(self.fenetre, borderwidth=1,relief=RAISED)
         self.interface_droite 
         self.joueur = tk.LabelFrame(self.interface_droite, borderwidth=1,relief=SUNKEN)
-        self.afich_joueur = tk.Label(self.joueur,text="Joueur à jouer:" , width=15,padx=5,pady=5)
-        self.etiq_joueur = tk.Label(self.joueur,text="", width=15,padx=5,pady=5)
+        self.afich_joueur = tk.Label(self.joueur,text="Joueur à jouer:" , width=15)
+        self.etiq_joueur = tk.Label(self.joueur,text="", width=15)
         self.afich_joueur.grid()
         self.etiq_joueur.grid()
-        self.joueur.grid(row=0,column=0,padx=5,pady=5,sticky="ne")
-        self.pointage = tk.LabelFrame(self.interface_droite, borderwidth=1,relief=SUNKEN)
+        self.joueur.grid(row=0,column=0,padx=5,pady=5,sticky="n")
+        self.pointage = tk.LabelFrame(self.interface_droite, borderwidth=1,relief=SUNKEN,text="Pointage")
         self.nomBlanc = tk.Label(self.pointage,text="Blanc: ", width=10)
         self.nomNoir = tk.Label(self.pointage,text="Noir: ",width=10)
-        self.pointBlanc = tk.Label(self.pointage,text="0", width=5)
-        self.pointNoir = tk.Label(self.pointage,text="0",width=5)
+        self.pointBlanc = tk.Label(self.pointage,text="0", width=4)
+        self.pointNoir = tk.Label(self.pointage,text="0",width=4)
         self.nomBlanc.grid(row=0,column=0)
         self.nomNoir.grid(row=1,column=0)
         self.pointBlanc.grid(row=0,column=1)
         self.pointNoir.grid(row=1,column=1)
-        self.pointage.grid(row=1,column=0,padx=5,pady=5)
+        self.pointage.grid(row=1,column=0,padx=5,pady=15)
+        self.messageframe = tk.LabelFrame(self.interface_droite, borderwidth=1,relief=SUNKEN,text="Message")
+        self.message = tk.Label(self.messageframe,text="",width=15)
+        self.messageframe.grid(padx=5,pady=15)
+        self.message.grid()
+        self.historiqueframe = tk.LabelFrame(self.interface_droite, borderwidth=1,relief=SUNKEN,text="Historique")
+        self.historique = tk.Label(self.historiqueframe,text="",width=15)
+        self.historiqueframe.grid(sticky="s",padx=5,pady=15)
+        self.historique.grid()
         self.etiquettetest = tk.Label(self.interface_droite,text="")
         self.etiquettetest.grid()
         self.interface_droite.grid(row=0,column=1,sticky="ne", padx=5, pady=5)
@@ -224,8 +239,7 @@ class JeuDeDames:
             damierSize = self.getDamierSize()
             damierPosition = self.getClickPosition(damierSize,event)
             if damierPosition[0] < 8 and damierPosition[1] < 8:
-                tailleCase = damierSize/8
-                self.interface_damier.selectCase(damierPosition,tailleCase)
+                self.interface_damier.selectCase(damierPosition)
                 self.etiquettetest["text"] = "({},{},{})".format(event.x,event.y,damierPosition)
             
     def MenuJeu(self, fenetre):
@@ -245,13 +259,22 @@ class JeuDeDames:
         mainmenu.add_cascade(label = "Aide", menu=menuHelp)
         fenetre.config(menu = mainmenu)
         
+         
     def aPropos(self):
-        
-        tk.messagebox.showinfo("A propos", "Version 1.0")
+        tk.messagebox.showinfo("A propos", "                     Version 1.0\n                     Conçu par\nJean-Francois Paty et Michel Tremblay")
     
     def NouveauJeu(self):
-        """ A Faire JF """
-        pass
+        self.interface_damier.ActualiserPieces(True)
+        #thistext = ""
+        #for key in self.interface_damier.damier.cases.keys():
+        #    thistext += str(self.interface_damier.damier.cases[key]) + "\n"
+        #    self.interface_damier.ajouter_piece(key,self.interface_damier.damier.cases[key])
+        #tk.messagebox.showinfo("letssee",thistext)
+
+
+
+
+
     def ChargerJeu(self):
         """ A Faire JF """
         pass
