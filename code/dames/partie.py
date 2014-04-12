@@ -20,6 +20,7 @@ class Partie:
         self.couleur_joueur_courant = "blanc"
         self.doit_prendre = False
         self.position_source_forcee = None
+        self.historique = ""
 
     def valider_position_source(self, position_source):
         """
@@ -130,8 +131,15 @@ class Partie:
                 else:
                     ligne_string, colonne_string = position_string.split(",")
                     self.position_source_forcee = (int(ligne_string), int(colonne_string))
-
-                self.damier.charger_dune_chaine(f.read())
+                reste = f.read()
+                chaine = ""
+                for line in reste.split("\n"):
+                    if not "#" in line:
+                        chaine = chaine + line + "\n"
+                    else:
+                        self.historique = self.historique + line.replace("#","") + "\n"
+      
+                self.damier.charger_dune_chaine(chaine)
         except:
             raise ProblemeChargement("Problème lors du chargement.")
 

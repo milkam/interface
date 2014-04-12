@@ -4,6 +4,8 @@
 import tkinter as tk
 from tkinter import *
 from tkinter import messagebox
+from tkinter import filedialog
+import os
 from dames.partie import Partie
 
         
@@ -96,9 +98,12 @@ class InterfaceDamier(tk.Frame):
         # on met les pièces au dessus de la selection de case
         self.canvas.tag_raise("piece")
 
-    def ActualiserPieces(self,Create):
+    def ActualiserPieces(self,Create,new):
         # On redessine les pieces
+        if new:
+            self.damier.initialiser_damier_par_default()
         if Create:
+            self.canvas.delete("piece")
             for position, piece in self.damier.cases.items():
                 self.ajouter_piece(position, piece)
         else:
@@ -145,7 +150,7 @@ class InterfaceDamier(tk.Frame):
                     color = self.couleur1
                 else:
                     color = self.couleur2
-        self.ActualiserPieces(False)
+        self.ActualiserPieces(False,False)
 
 
 
@@ -156,6 +161,8 @@ class JeuDeDames:
         # On a besoin d'une fenêtre.
         self.fenetre = tk.Tk()
         self.fenetre.title("Jeux de dames de Michel Tremblay et Jean-Francois Paty")
+        self.historiqueCharge = []
+        self.partieCharge = []
                
         "définition des menus:"
         self.MenuJeu(self.fenetre)
@@ -177,30 +184,37 @@ class JeuDeDames:
         # historique de jeux : self.historique["text"] = ""   N'aficher que les 15 dernier move ie : blanc : 1,2 -> 2,3\nnoir : 5,4 -> 6,3\n
         self.interface_droite = tk.LabelFrame(self.fenetre, borderwidth=1,relief=RAISED)
         self.interface_droite 
+        #Joueur
         self.joueur = tk.LabelFrame(self.interface_droite, borderwidth=1,relief=SUNKEN)
-        self.afich_joueur = tk.Label(self.joueur,text="Joueur à jouer:" , width=15)
-        self.etiq_joueur = tk.Label(self.joueur,text="", width=15)
+        self.afich_joueur = tk.Label(self.joueur,text="Joueur à jouer:" , width=20)
+        self.etiq_joueur = tk.Label(self.joueur,text="", width=20)
         self.afich_joueur.grid()
         self.etiq_joueur.grid()
         self.joueur.grid(row=0,column=0,padx=5,pady=5,sticky="n")
+        # Pointage
         self.pointage = tk.LabelFrame(self.interface_droite, borderwidth=1,relief=SUNKEN,text="Pointage")
         self.nomBlanc = tk.Label(self.pointage,text="Blanc: ", width=10)
         self.nomNoir = tk.Label(self.pointage,text="Noir: ",width=10)
-        self.pointBlanc = tk.Label(self.pointage,text="0", width=4)
-        self.pointNoir = tk.Label(self.pointage,text="0",width=4)
+        self.pointBlanc = tk.Label(self.pointage,text="0", width=9)
+        self.pointNoir = tk.Label(self.pointage,text="0",width=9)
         self.nomBlanc.grid(row=0,column=0)
         self.nomNoir.grid(row=1,column=0)
         self.pointBlanc.grid(row=0,column=1)
         self.pointNoir.grid(row=1,column=1)
-        self.pointage.grid(row=1,column=0,padx=5,pady=15)
+        self.pointage.grid(row=1,column=0,padx=5,pady=20)
+        # Message
         self.messageframe = tk.LabelFrame(self.interface_droite, borderwidth=1,relief=SUNKEN,text="Message")
-        self.message = tk.Label(self.messageframe,text="",width=15)
+        self.message = tk.Label(self.messageframe,text="",width=20)
         self.messageframe.grid(padx=5,pady=15)
         self.message.grid()
+        # Historique
         self.historiqueframe = tk.LabelFrame(self.interface_droite, borderwidth=1,relief=SUNKEN,text="Historique")
-        self.historique = tk.Label(self.historiqueframe,text="",width=15)
+        self.historique = tk.Text(self.historiqueframe,width=20,height=13)
         self.historiqueframe.grid(sticky="s",padx=5,pady=15)
         self.historique.grid()
+        self.scrollbar = tk.Scrollbar(self.historiqueframe,command=self.historique.yview)
+        self.scrollbar.grid(row=0,column=1,sticky='nse')
+        self.historique['yscrollcommand'] = self.scrollbar.set
         self.etiquettetest = tk.Label(self.interface_droite,text="")
         self.etiquettetest.grid()
         self.interface_droite.grid(row=0,column=1,sticky="ne", padx=5, pady=5)
@@ -246,11 +260,12 @@ class JeuDeDames:
         
         mainmenu = tk.Menu(fenetre)  ## Barre de menu 
         menuPartie = tk.Menu(mainmenu)  ## Menu fils menuExample 
-        #menuExample.add_command(label="Affiche", command=fenetre.Affiche)  ## Ajout d'une option au menu fils menuFile 
         menuPartie.add_command(label="Nouvelle Partie", command=self.NouveauJeu)
         menuPartie.add_command(label="Charger une Partie", command=self.ChargerJeu)
+        menuPartie.add_command(label="Charger une Partie avec historique", command=self.ChargerJeuHistorique)
         menuPartie.add_command(label="Sauvegarder une partie", command=self.SauveJeu)
-        menuPartie.add_command(label="Quitter", command=fenetre.quit) 
+        menuPartie.add_command(label="Sauvegarder une partie avec historique", command=self.SauveJeuHistorique)
+        menuPartie.add_command(label="Quitter", command=fenetre.destroy) 
   
         menuHelp = tk.Menu(mainmenu) ## Menu Fils 
         menuHelp.add_command(label="A propos", command=self.aPropos) 
@@ -264,20 +279,31 @@ class JeuDeDames:
         tk.messagebox.showinfo("A propos", "                     Version 1.0\n                     Conçu par\nJean-Francois Paty et Michel Tremblay")
     
     def NouveauJeu(self):
-        self.interface_damier.ActualiserPieces(True)
-        #thistext = ""
-        #for key in self.interface_damier.damier.cases.keys():
-        #    thistext += str(self.interface_damier.damier.cases[key]) + "\n"
-        #    self.interface_damier.ajouter_piece(key,self.interface_damier.damier.cases[key])
-        #tk.messagebox.showinfo("letssee",thistext)
-
-
-
-
+        #Partie.nouvelle_partie
+        self.historique.delete(1.0,END)
+        self.interface_damier.ActualiserPieces(True,True)
+        self.partie.historique = ""
 
     def ChargerJeu(self):
+        self.partie.historique = ""
+        self.historique.delete(1.0,END)
+        fileName = filedialog.askopenfile(filetypes=[("Save Games", "*.sav")])
+        self.partie.charger(fileName.name)
+        self.interface_damier.ActualiserPieces(True,False)
+
+    def ChargerJeuHistorique(self):
+        self.partie.historique = ""
+        self.historique.delete(1.0,END)
+        fileName = filedialog.askopenfile(filetypes=[("Save Games", "*.sav")])
+        self.partie.charger(fileName.name)
+        self.interface_damier.ActualiserPieces(True,False)
+        self.historique.insert(END, self.partie.historique)
+        
+
+    def SauveJeu(self):
         """ A Faire JF """
         pass
-    def SauveJeu(self):
+
+    def SauveJeuHistorique(self):
         """ A Faire JF """
         pass
