@@ -86,14 +86,14 @@ class InterfaceDamier(tk.Frame):
         self.canvas.itemconfigure(nom_piece, font=tempfont)
         self.canvas.coords(nom_piece, x, y)
     
-    def selectCase(self, position):
+    def selectCase(self, position, color):
         # Selection de la case (afficher d'une manière graphique la case selectionné)
         x1 = position[0] * self.taille_case
         x2 = x1+self.taille_case
         y1 = position[1]*self.taille_case
         y2 = y1+self.taille_case
-        color = "yellow"
-        self.canvas.delete("selected")
+        if color == "yellow":
+            self.canvas.delete("selected")
         self.canvas.create_rectangle(x1, y1, x2, y2, outline="black", fill=color, tags="selected")
         # on met les pièces au dessus de la selection de case
         self.canvas.tag_raise("piece")
@@ -128,6 +128,7 @@ class InterfaceDamier(tk.Frame):
         self.canvas.delete("case")
         # On efface la case selected si il y en a une
         self.canvas.delete("selected")
+        
 
         # On les redessine
         color = self.couleur2
@@ -204,7 +205,7 @@ class JeuDeDames:
         self.pointage.grid(row=1,column=0,padx=5,pady=20)
         # Message
         self.messageframe = tk.LabelFrame(self.interface_droite, borderwidth=1,relief=SUNKEN,text="Message")
-        self.message = tk.Label(self.messageframe,text="",width=25)
+        self.message = tk.Label(self.messageframe,text="",width=25,height = 5)
         self.messageframe.grid(padx=5,pady=15)
         self.message.grid()
         # Historique
@@ -250,36 +251,22 @@ class JeuDeDames:
     def VerificationSelectionValide(self, position):
         #position est inversé dans ce code par rapport à la partie
         self.message["text"] = ""
-        position = (position[1],position[0])
+        positionInverse = (position[1],position[0])
 
-        pieceChoisie = self.partie.damier.get_piece(position)
-        if self.partie.joueur_courant_peut_prendre_piece_adverse:
-            try:
-                self.partie.valider_position_source(position)
-            except Exception as e:
-                self.message["text"] = e.msg
-            
+        pieceChoisie = self.partie.damier.get_piece(positionInverse)
+        try:
+            self.partie.valider_position_source(positionInverse)
+            self.interface_damier.selectCase(position, "yellow")
+            listePosition = self.partie.damier.lister_deplacements_possibles_a_partir_de_position(positionInverse,self.partie.joueur_courant_peut_prendre_piece_adverse())
+            for positionPossible in listePosition:
+                positionPossible = (positionPossible[1],positionPossible[0])
+                self.interface_damier.selectCase(positionPossible,"green")
+            return True
+        except Exception as e:
+            self.message["text"] = e.msg
+            return False
         
-        
-        #pieceBonneCouleur = False
-        #joueurPeutManger = False
-        #piecePeutManger = False
-        #if pieceChoisie:
-        #    couleur = self.partie.couleur_joueur_courant
-        #    if (pieceChoisie.est_blanc() and couleur == "blanc") or pieceChoisie.est_noir() and couleur == "noir":
-        #        pieceBonneCouleur = True
-                
-                
-                
-                
-                
-                
-                
-                #else:
-             #   self.message["text"] = "Ce n'est pas \nun emplacement Valide"
-
-
-
+    #def 
 
     def click(self, event):
         # Au click (donc selection d'une piece) on trouve avec le click qu'elle case on a clicker et on "HighLight" cette case
@@ -288,14 +275,12 @@ class JeuDeDames:
             damierPosition = self.getClickPosition(damierSize,event)
             if damierPosition[0] < 8 and damierPosition[1] < 8:
                 #HighLight la case
-                self.VerificationSelectionValide(damierPosition)
-                self.interface_damier.selectCase(damierPosition)
-                self.etiquettetest["text"] = "({},{},{})".format(event.x,event.y,damierPosition)
+                if self.VerificationSelectionValide(damierPosition):
+                    self.etiquettetest["text"] = "({},{},{})".format(event.x,event.y,damierPosition)
      
                 
     
                 
-                       
     def MenuJeu(self, fenetre):
         
         mainmenu = tk.Menu(fenetre)  ## Barre de menu 
