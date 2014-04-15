@@ -204,7 +204,7 @@ class JeuDeDames:
         self.pointage.grid(row=1,column=0,padx=5,pady=20)
         # Message
         self.messageframe = tk.LabelFrame(self.interface_droite, borderwidth=1,relief=SUNKEN,text="Message")
-        self.message = tk.Label(self.messageframe,text="",width=20)
+        self.message = tk.Label(self.messageframe,text="",width=25)
         self.messageframe.grid(padx=5,pady=15)
         self.message.grid()
         # Historique
@@ -247,15 +247,55 @@ class JeuDeDames:
         y =   event.y // (size/8)
         return (int(x), int(y))
 
+    def VerificationSelectionValide(self, position):
+        #position est inversé dans ce code par rapport à la partie
+        self.message["text"] = ""
+        position = (position[1],position[0])
+
+        pieceChoisie = self.partie.damier.get_piece(position)
+        if self.partie.joueur_courant_peut_prendre_piece_adverse:
+            try:
+                self.partie.valider_position_source(position)
+            except Exception as e:
+                self.message["text"] = e.msg
+            
+        
+        
+        #pieceBonneCouleur = False
+        #joueurPeutManger = False
+        #piecePeutManger = False
+        #if pieceChoisie:
+        #    couleur = self.partie.couleur_joueur_courant
+        #    if (pieceChoisie.est_blanc() and couleur == "blanc") or pieceChoisie.est_noir() and couleur == "noir":
+        #        pieceBonneCouleur = True
+                
+                
+                
+                
+                
+                
+                
+                #else:
+             #   self.message["text"] = "Ce n'est pas \nun emplacement Valide"
+
+
+
+
     def click(self, event):
         # Au click (donc selection d'une piece) on trouve avec le click qu'elle case on a clicker et on "HighLight" cette case
         if event.widget.widgetName == "canvas":
             damierSize = self.getDamierSize()
             damierPosition = self.getClickPosition(damierSize,event)
             if damierPosition[0] < 8 and damierPosition[1] < 8:
+                #HighLight la case
+                self.VerificationSelectionValide(damierPosition)
                 self.interface_damier.selectCase(damierPosition)
                 self.etiquettetest["text"] = "({},{},{})".format(event.x,event.y,damierPosition)
-            
+     
+                
+    
+                
+                       
     def MenuJeu(self, fenetre):
         
         mainmenu = tk.Menu(fenetre)  ## Barre de menu 
@@ -274,15 +314,44 @@ class JeuDeDames:
         mainmenu.add_cascade(label = "Aide", menu=menuHelp)
         fenetre.config(menu = mainmenu)
         
-         
     def aPropos(self):
         tk.messagebox.showinfo("A propos", "                     Version 1.0\n                     Conçu par\nJean-Francois Paty et Michel Tremblay")
     
+
+    def DebutPartie(self):
+        self.etiq_joueur["text"] = self.partie.couleur_joueur_courant
+    
+
+    def VerifGagnant(self):
+        # Verification si il y a un Gagnant.
+        if self.pointBlanc["text"] == 12:
+            tk.messagebox.showinfo("Gagnant!!","Le joueur Blanc est Gagnant de la partie")
+            self.message["text"] = "Partie gagné\npar le joueur\nBLANC"
+        elif self.pointNoir["text"] == 12:
+            tk.messagebox.showinfo("Gagnant!!","Le joueur Noir est Gagnant de la partie")
+            self.message["text"] = "Partie gagné\npar le joueur\nNOIR"
+
+
+    def CalculPointage(self):
+        # Calcul et affichage du Pointage
+        noir = 12
+        blanc = 12
+        for piece in self.partie.damier.cases.values():
+            if str(piece) == "x" or str(piece) == "X":
+                noir = noir - 1
+            elif str(piece) == "o" or str(piece) == "O":
+                blanc = blanc - 1
+        self.pointBlanc["text"] = str(blanc)
+        self.pointNoir["text"] = str(noir)
+        self.VerifGagnant()         
+
     def NouveauJeu(self):
         #Partie.nouvelle_partie
         self.historique.delete(1.0,END)
         self.interface_damier.ActualiserPieces(True,True)
         self.partie.historique = ""
+        self.CalculPointage()
+        
 
     def ChargerJeu(self):
         self.partie.historique = ""
@@ -290,6 +359,7 @@ class JeuDeDames:
         fileName = filedialog.askopenfile(filetypes=[("Save Games", "*.sav")])
         self.partie.charger(fileName.name)
         self.interface_damier.ActualiserPieces(True,False)
+        self.CalculPointage()
 
     def ChargerJeuHistorique(self):
         self.partie.historique = ""
@@ -298,7 +368,9 @@ class JeuDeDames:
         self.partie.charger(fileName.name)
         self.interface_damier.ActualiserPieces(True,False)
         self.historique.insert(END, self.partie.historique)
+        self.CalculPointage()
         
+
 
     def SauveJeu(self):
         """ A Faire JF """

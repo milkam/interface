@@ -42,20 +42,20 @@ class Partie:
         """
         if self.doit_prendre:
             if len(self.damier.lister_deplacements_possibles_a_partir_de_position(position_source, True)) == 0:
-                raise PositionSourceInvalide("Position source invalide: cette pièce ne peut pas faire de prise.")
+                raise PositionSourceInvalide("Position source invalide:\ncette pièce ne peut\npas faire de prise.")
 
             if self.position_source_forcee is not None:
                 if not (self.position_source_forcee == position_source):
-                    raise PositionSourceInvalide("Position source invalide: vous devez faire une prise avec la pièce " +
+                    raise PositionSourceInvalide("Position source invalide:\nvous devez faire\nune prise avec la pièce " +
                                                  "en ({},{}).".format(self.position_source_forcee[0],
                                                                       self.position_source_forcee[1]))
 
         piece_source = self.damier.get_piece(position_source)
         if piece_source is None:
-            raise PositionSourceInvalide("Position source invalide: aucune pièce à cet endroit.")
+            raise PositionSourceInvalide("Position source invalide:\naucune pièce à\ncet endroit.")
 
         if not piece_source.couleur == self.couleur_joueur_courant:
-            raise PositionSourceInvalide("Position source invalide: pièce de mauvaise couleur.")
+            raise PositionSourceInvalide("Position source invalide:\npièce de mauvaise\ncouleur.")
 
     def valider_position_cible(self, position_source, position_cible):
         """

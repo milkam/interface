@@ -4,16 +4,27 @@ __author__ = "Jean-Francis Roy"
 
 
 class PositionSourceInvalide(Exception):
-    pass
-
+    def __init__(self, msg):
+        self.msg = msg
+    def __str__(self):
+        return repr(self.msg)
 
 class PositionCibleInvalide(Exception):
-    pass
+    def __init__(self, msg):
+        self.msg = msg
+    def __str__(self):
+        return repr(self.msg)
 
 
 class ProblemeChargement(Exception):
-    pass
+    def __init__(self, msg):
+        self.msg = msg
+    def __str__(self):
+        return repr(self.msg)
 
 
 class ProblemeSauvegarde(Exception):
-    pass
+    def __init__(self, msg):
+        self.msg = msg
+    def __str__(self):
+        return repr(self.msg)
