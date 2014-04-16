@@ -365,19 +365,11 @@ class JeuDeDames:
         self.partie.charger(fileName.name)
         self.interface_damier.ActualiserPieces(True,False)
         self.CalculPointage()
-        self.Aiset()
 
     def ChargerJeuHistorique(self):
         self.partie.historique = ""
         self.historique.delete(1.0,END)
         fileName = filedialog.askopenfile(filetypes=[("Save Games", "*.sav")])
-<<<<<<< HEAD
-        self.partie.charger(fileName.name)
-        self.interface_damier.ActualiserPieces(True,False)
-        self.historique.insert(END, self.partie.historique)
-        self.CalculPointage()
-        self.Aiset()
-=======
         try:
             self.partie.charger(fileName.name)
             self.interface_damier.ActualiserPieces(True,False)
@@ -386,10 +378,7 @@ class JeuDeDames:
         except ProblemeChargement:
             self.message["text"] ="Chargement en échec !"
            
->>>>>>> origin/master
         
-
-
     def SauveJeu(self):
         """ Sauvegarde une partie dans un ficher """
         filename=filedialog.asksaveasfile(filetypes=[("Save Games", "*.sav")])
@@ -401,9 +390,6 @@ class JeuDeDames:
             else:
                 self.message["text"] ="Sauvegarde réussie"
                 
-
-                    
-
 
     def SauveJeuHistorique(self):
         """ Sauvegarde une partie avec historique dans un ficher """
@@ -421,5 +407,6 @@ class JeuDeDames:
                 self.message["text"] = e.msg
             else:
                 self.message["text"] ="sauvegarde réussie"
+        
         
         
