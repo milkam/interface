@@ -7,6 +7,7 @@ from tkinter import messagebox
 from tkinter import filedialog
 import os
 from dames.partie import Partie
+import Ai.AiControl as Ai
 
         
 
@@ -330,12 +331,21 @@ class JeuDeDames:
         self.pointNoir["text"] = str(noir)
         self.VerifGagnant()         
 
+    def Aiset(self):
+        aicontrol = Ai.AiControl(self.partie,2)
+        bigHistory = aicontrol.testPossibilities()
+        bestMove = aicontrol.GetBestMove(bigHistory)
+        return bestMove
+
+
     def NouveauJeu(self):
         #Partie.nouvelle_partie
         self.historique.delete(1.0,END)
         self.interface_damier.ActualiserPieces(True,True)
         self.partie.historique = ""
         self.CalculPointage()
+        self.DebutPartie()
+        thistest = self.Aiset()
         
 
     def ChargerJeu(self):
@@ -345,6 +355,7 @@ class JeuDeDames:
         self.partie.charger(fileName.name)
         self.interface_damier.ActualiserPieces(True,False)
         self.CalculPointage()
+        self.Aiset()
 
     def ChargerJeuHistorique(self):
         self.partie.historique = ""
@@ -354,6 +365,7 @@ class JeuDeDames:
         self.interface_damier.ActualiserPieces(True,False)
         self.historique.insert(END, self.partie.historique)
         self.CalculPointage()
+        self.Aiset()
         
 
 
