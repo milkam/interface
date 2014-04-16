@@ -7,8 +7,11 @@ from tkinter import messagebox
 from tkinter import filedialog
 import os
 from dames.partie import Partie
+from dames.exceptions import *
+from dames.exceptions import PositionSourceInvalide, PositionCibleInvalide, ProblemeChargement, ProblemeSauvegarde
 
-        
+
+
 
 class InterfaceDamier(tk.Frame):
     """
@@ -188,7 +191,8 @@ class JeuDeDames:
         #Joueur
         self.joueur = tk.LabelFrame(self.interface_droite, borderwidth=1,relief=SUNKEN)
         self.afich_joueur = tk.Label(self.joueur,text="Joueur à jouer:" , width=20)
-        self.etiq_joueur = tk.Label(self.joueur,text="", width=20)
+        self.etiq_joueur = tk.Label(self.joueur,text=self.partie.couleur_joueur_courant, width=20)
+       
         self.afich_joueur.grid()
         self.etiq_joueur.grid()
         self.joueur.grid(row=0,column=0,padx=5,pady=5,sticky="n")
@@ -210,7 +214,7 @@ class JeuDeDames:
         self.message.grid()
         # Historique
         self.historiqueframe = tk.LabelFrame(self.interface_droite, borderwidth=1,relief=SUNKEN,text="Historique")
-        self.historique = tk.Text(self.historiqueframe,width=20,height=13)
+        self.historique = tk.Text(self.historiqueframe,width=20,height=13,)
         self.historiqueframe.grid(sticky="s",padx=5,pady=15)
         self.historique.grid()
         self.scrollbar = tk.Scrollbar(self.historiqueframe,command=self.historique.yview)
@@ -304,7 +308,10 @@ class JeuDeDames:
     
 
     def DebutPartie(self):
-        self.etiq_joueur["text"] = self.partie.couleur_joueur_courant
+        #self.etiq_joueur["text"] = self.partie.couleur_joueur_courant
+        #self.etiq_joueur.grid()
+        #self.etiq_joueur = tk.Label(self.joueur,text="", width=20)
+        pass
     
 
     def VerifGagnant(self):
@@ -358,9 +365,35 @@ class JeuDeDames:
 
 
     def SauveJeu(self):
-        """ A Faire JF """
-        pass
+        """ Sauvegarde une partie dans un ficher """
+        filename=filedialog.asksaveasfile(filetypes=[("Save Games", "*.sav")])
+        if filename!=None:
+            try:
+                self.partie.sauvegarder(filename.name)
+            except ProblemeSauvegarde as e:
+                self.message["text"] = e.msg
+            else:
+                self.message["text"] ="sauvegarde réussie"
+                
+
+                    
+
 
     def SauveJeuHistorique(self):
-        """ A Faire JF """
-        pass
+        """ Sauvegarde une partie avec historique dans un ficher """
+        
+        histo=self.historique.get(1.0, END)
+        filename=filedialog.asksaveasfile(filetypes=[("Save Games", "*.sav")])
+        if filename!=None:
+            try:
+                self.partie.sauvegarder(filename.name)
+                fich=open(filename.name,"a")
+                fich.write("#Coups joués\n")
+                fich.write("{}\n".format(histo))
+                fich.close()
+            except ProblemeSauvegarde as e:
+                self.message["text"] = e.msg
+            else:
+                self.message["text"] ="sauvegarde réussie"
+        
+        
