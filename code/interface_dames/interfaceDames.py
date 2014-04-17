@@ -7,14 +7,9 @@ from tkinter import messagebox
 from tkinter import filedialog
 import os
 from dames.partie import Partie
-<<<<<<< HEAD
 import Ai.AiControl as Ai
-=======
 from dames.exceptions import *
 from dames.exceptions import PositionSourceInvalide, PositionCibleInvalide, ProblemeChargement, ProblemeSauvegarde
-
-
->>>>>>> origin/master
 
 
 class InterfaceDamier(tk.Frame):
@@ -171,13 +166,15 @@ class JeuDeDames:
         self.fenetre.title("Jeux de dames de Michel Tremblay et Jean-Francois Paty")
         self.historiqueCharge = []
         self.partieCharge = []
-               
+        self.currentSelectedPosition = []      
         "définition des menus:"
         self.MenuJeu(self.fenetre)
+        self.AI = True
+        
         
         # On a besoin d'une partie.
         self.partie = Partie()
-
+        self.aicontrol = Ai.AiControl(self.partie)
         # On a besoin d'un damier, qu'on placera dans notre fenêtre...
         self.interface_damier = InterfaceDamier(self.fenetre, 64,self.partie.damier)
         self.interface_damier.grid()
@@ -274,26 +271,77 @@ class JeuDeDames:
             self.message["text"] = e.msg
             return False
         
-    #def 
 
     def click(self, event):
         # Au click (donc selection d'une piece) on trouve avec le click qu'elle case on a clicker et on "HighLight" cette case
-        if event.widget.widgetName == "canvas":
-            damierSize = self.getDamierSize()
-            damierPosition = self.getClickPosition(damierSize,event)
-            if damierPosition[0] < 8 and damierPosition[1] < 8:
-                #HighLight la case
-                if self.VerificationSelectionValide(damierPosition):
-                    self.etiquettetest["text"] = "({},{},{})".format(event.x,event.y,damierPosition)
-     
-                
+        self.GestionduJeux(event)
+
+    def GestionduJeux(self, event):
+        try:
+
+            if event.widget.widgetName == "canvas":
+                damierSize = self.getDamierSize()
+                damierPosition = self.getClickPosition(damierSize,event)
+                Continue = True
+                if damierPosition[0] < 8 and damierPosition[1] < 8:
+                    if self.currentSelectedPosition != []:
+                        lastclick = self.currentSelectedPosition
+                        destInverse = (damierPosition[1],damierPosition[0])
+                        sourceInverse = (lastclick[1],lastclick[0])
+                        doitPrendre = self.partie.joueur_courant_peut_prendre_piece_adverse()
+                        currentPossibilities = self.partie.damier.lister_deplacements_possibles_a_partir_de_position(sourceInverse,doitPrendre)
+                        if destInverse in currentPossibilities:
+                            self.partie.damier.deplacer(sourceInverse,destInverse)
+                            self.CalculPointage()
+                            self.interface_damier.ActualiserPieces(True,False)
+                            self.interface_damier.canvas.delete("selected")
+                            self.interface_damier.canvas.delete("positionPossible")
+                            self.currentSelectedPosition = []
+                            maintenantdoitPrendre = self.partie.damier.position_peut_prendre_une_piece_adverse(destInverse)
+                            if not maintenantdoitPrendre or not doitPrendre:
+                                self.partie.passer_au_joueur_suivant()
+                            
+                                self.etiq_joueur["text"] = self.ShowCurrentPlayer()
+                            Continue = False
+                    #HighLight la case
+                    if Continue:
+                        if self.VerificationSelectionValide(damierPosition):
+                            self.currentSelectedPosition = damierPosition
+                            self.etiquettetest["text"] = "({},{},{})".format(event.x,event.y,damierPosition)
+            if self.partie.couleur_joueur_courant == 'noir' and self.AI:
+                self.aiPlay()
+        except:
+            if not self.VerifGagnant():
+                tk.messagebox.showwarning("NULE","La partie est nule\nDémarrez une nouvelle partie")
     
-                
+    def aiPlay(self):
+        doitPrendre = self.partie.joueur_courant_peut_prendre_piece_adverse()
+        if not doitPrendre:
+            self.aiCurrentPlay()
+        while doitPrendre:
+            doitPrendre = self.aiCurrentPlay()
+        self.partie.passer_au_joueur_suivant()
+        self.etiq_joueur["text"] = self.ShowCurrentPlayer()
+
+    def aiCurrentPlay(self):
+         bestMove = self.Aiset()
+         source = bestMove[0]
+         sourceInverse = (source[1],source[0])
+         destination = bestMove[1]
+         destinationInverse = (destination[1],destination[0])
+         self.partie.damier.deplacer(source,destination)
+         doitPrendre = self.partie.damier.position_peut_prendre_une_piece_adverse(destination)
+         self.CalculPointage()
+         self.interface_damier.ActualiserPieces(True,False)
+         return doitPrendre
+               
+
     def MenuJeu(self, fenetre):
         
         mainmenu = tk.Menu(fenetre)  ## Barre de menu 
         menuPartie = tk.Menu(mainmenu)  ## Menu fils menuExample 
         menuPartie.add_command(label="Nouvelle Partie", command=self.NouveauJeu)
+        menuPartie.add_command(label="Nouvelle Partie vs AI", command=self.NouveauJeuAi)
         menuPartie.add_command(label="Charger une Partie", command=self.ChargerJeu)
         menuPartie.add_command(label="Charger une Partie avec historique", command=self.ChargerJeuHistorique)
         menuPartie.add_command(label="Sauvegarder une partie", command=self.SauveJeu)
@@ -311,8 +359,8 @@ class JeuDeDames:
         tk.messagebox.showinfo("A propos", "                     Version 1.0\n                     Conçu par\nJean-Francois Paty et Michel Tremblay")
     
 
-    def DebutPartie(self):
-        #self.etiq_joueur["text"] = self.partie.couleur_joueur_courant
+    def ShowCurrentPlayer(self):
+        self.etiq_joueur["text"] = self.partie.couleur_joueur_courant
         #self.etiq_joueur.grid()
         #self.etiq_joueur = tk.Label(self.joueur,text="", width=20)
         pass
@@ -320,12 +368,14 @@ class JeuDeDames:
 
     def VerifGagnant(self):
         # Verification si il y a un Gagnant.
-        if self.pointBlanc["text"] == 12:
+        if self.pointBlanc["text"] == '12':
             tk.messagebox.showinfo("Gagnant!!","Le joueur Blanc est Gagnant de la partie")
             self.message["text"] = "Partie gagné\npar le joueur\nBLANC"
-        elif self.pointNoir["text"] == 12:
+            return True
+        elif self.pointNoir["text"] == '12':
             tk.messagebox.showinfo("Gagnant!!","Le joueur Noir est Gagnant de la partie")
             self.message["text"] = "Partie gagné\npar le joueur\nNOIR"
+            return True
 
 
     def CalculPointage(self):
@@ -334,19 +384,19 @@ class JeuDeDames:
         blanc = 12
         for piece in self.partie.damier.cases.values():
             if str(piece) == "x" or str(piece) == "X":
-                noir = noir - 1
-            elif str(piece) == "o" or str(piece) == "O":
                 blanc = blanc - 1
+            elif str(piece) == "o" or str(piece) == "O":
+                noir = noir - 1
         self.pointBlanc["text"] = str(blanc)
         self.pointNoir["text"] = str(noir)
-        self.VerifGagnant()         
 
     def Aiset(self):
-        aicontrol = Ai.AiControl(self.partie,2)
-        bigHistory = aicontrol.testPossibilities()
-        bestMove = aicontrol.GetBestMove(bigHistory)
+        #aicontrol = Ai.AiControl(self.partie,2)
+        bestMove = self.aicontrol.StartAIGet()
         return bestMove
-
+        
+    def deplacerPiece(self,source,destination):
+        self.interface_damier.damier.deplacer(source,destination)
 
     def NouveauJeu(self):
         #Partie.nouvelle_partie
@@ -354,10 +404,17 @@ class JeuDeDames:
         self.interface_damier.ActualiserPieces(True,True)
         self.partie.historique = ""
         self.CalculPointage()
-        self.DebutPartie()
-        thistest = self.Aiset()
-        
+        self.ShowCurrentPlayer()
 
+    def NouveauJeuAi(self):
+        #Partie.nouvelle_partie
+        self.historique.delete(1.0,END)
+        self.interface_damier.ActualiserPieces(True,True)
+        self.partie.historique = ""
+        self.CalculPointage()
+        self.ShowCurrentPlayer()
+        self.AI = True
+                
     def ChargerJeu(self):
         self.partie.historique = ""
         self.historique.delete(1.0,END)
