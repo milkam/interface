@@ -391,7 +391,6 @@ class JeuDeDames:
         self.pointNoir["text"] = str(noir)
 
     def Aiset(self):
-        #aicontrol = Ai.AiControl(self.partie,2)
         bestMove = self.aicontrol.StartAIGet()
         return bestMove
         
@@ -405,6 +404,7 @@ class JeuDeDames:
         self.partie.historique = ""
         self.CalculPointage()
         self.ShowCurrentPlayer()
+        self.AI = False
 
     def NouveauJeuAi(self):
         #Partie.nouvelle_partie
@@ -422,6 +422,7 @@ class JeuDeDames:
         self.partie.charger(fileName.name)
         self.interface_damier.ActualiserPieces(True,False)
         self.CalculPointage()
+        self.AI = False
 
     def ChargerJeuHistorique(self):
         self.partie.historique = ""
@@ -438,7 +439,13 @@ class JeuDeDames:
         
     def SauveJeu(self):
         """ Sauvegarde une partie dans un ficher """
-        filename=filedialog.asksaveasfile(filetypes=[("Save Games", "*.sav")])
+        self.file_opt = options = {}
+        options['defaultextension'] = '.sav'
+        options['filetypes'] = [("Save Games", "*.sav")]
+        options['initialdir'] = 'C:\\'
+        options['initialfile'] = 'mySave.sav'
+        options['title'] = 'Sauvegarder votre Jeux de Dames'
+        filename=filedialog.asksaveasfile(mode='w', **self.file_opt)
         if filename!=None:
             try:
                 self.partie.sauvegarder(filename.name)
@@ -452,7 +459,13 @@ class JeuDeDames:
         """ Sauvegarde une partie avec historique dans un ficher """
         
         histo=self.historique.get(1.0, END)
-        filename=filedialog.asksaveasfile(filetypes=[("Save Games", "*.sav")])
+        self.file_opt = options = {}
+        options['defaultextension'] = '.sav'
+        options['filetypes'] = [("Save Games", "*.sav")]
+        options['initialdir'] = 'C:\\'
+        options['initialfile'] = 'mySave.sav'
+        options['title'] = 'Sauvegarder votre Jeux de Dames'
+        filename=filedialog.asksaveasfile(mode='w', **self.file_opt)
         if filename!=None:
             try:
                 self.partie.sauvegarder(filename.name)
