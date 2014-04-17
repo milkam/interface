@@ -293,7 +293,7 @@ class JeuDeDames:
         menuPartie.add_command(label="Charger une Partie", command=self.ChargerJeu)
         menuPartie.add_command(label="Charger une Partie avec historique", command=self.ChargerJeuHistorique)
         menuPartie.add_command(label="Sauvegarder une partie", command=self.SauveJeu)
-        menuPartie.add_command(label="Sauvegarder une partie avec historique", command=self.SauveJeuHistorique)
+        menuPartie.add_command(label="Sauvegarder une partie avec historique", command=self.SauveJeu)
         menuPartie.add_command(label="Quitter", command=fenetre.destroy) 
   
         menuHelp = tk.Menu(mainmenu) ## Menu Fils 
@@ -347,23 +347,28 @@ class JeuDeDames:
 
     def ChargerJeu(self):
         self.partie.historique = ""
-        self.historique.delete(1.0,END)
         fileName = filedialog.askopenfile(filetypes=[("Save Games", "*.sav")])
-        self.partie.charger(fileName.name)
-        self.interface_damier.ActualiserPieces(True,False)
-        self.CalculPointage()
+        if fileName!=None:
+            try:
+                self.historique.delete(1.0,END)
+                self.partie.charger(fileName.name)
+                self.interface_damier.ActualiserPieces(True,False)
+                self.CalculPointage()
+            except ProblemeChargement as e:
+                self.message["text"] =e.msg
 
     def ChargerJeuHistorique(self):
         self.partie.historique = ""
         self.historique.delete(1.0,END)
         fileName = filedialog.askopenfile(filetypes=[("Save Games", "*.sav")])
-        try:
-            self.partie.charger(fileName.name)
-            self.interface_damier.ActualiserPieces(True,False)
-            self.historique.insert(END, self.partie.historique)
-            self.CalculPointage()
-        except ProblemeChargement:
-            self.message["text"] ="Chargement en échec !"
+        if fileName!=None:
+            try:
+                self.partie.charger(fileName.name)
+                self.interface_damier.ActualiserPieces(True,False)
+                self.historique.insert(END, self.partie.historique)
+                self.CalculPointage()
+            except ProblemeChargement as e:
+                self.message["text"] =e.msg
            
         
 
@@ -373,9 +378,9 @@ class JeuDeDames:
         filename=filedialog.asksaveasfile(filetypes=[("Save Games", "*.sav")])
         if filename!=None:
             try:
-                self.partie.sauvegarder(filename.name)
-            except ProblemeSauvegarde:
-                self.message["text"] = "Sauvegarde en échec !"
+                self.partie.sauvegarder(filename.name,self.historique.get(1.0, END))
+            except ProblemeSauvegarde as e:
+                self.message["text"] = e.msg
             else:
                 self.message["text"] ="Sauvegarde réussie"
                 
@@ -395,9 +400,11 @@ class JeuDeDames:
                 fich.write("#Coups joués\n")
                 fich.write("{}\n".format(histo))
                 fich.close()
-            except ProblemeSauvegarde as e:
-                self.message["text"] = e.msg
+            except ProblemeSauvegarde:
+                self.message["text"] = "Sauvegarde en échec !"
             else:
-                self.message["text"] ="sauvegarde réussie"
+                self.message["text"] ="Sauvegarde réussie"
+    
+        
         
         
