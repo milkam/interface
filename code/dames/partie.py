@@ -20,7 +20,7 @@ class Partie:
         self.couleur_joueur_courant = "blanc"
         self.doit_prendre = False
         self.position_source_forcee = None
-        self.historique = ""
+        self.historique = "" #Permet de récupérer l,historique des coups joués.
 
     def valider_position_source(self, position_source):
         """
@@ -86,7 +86,7 @@ class Partie:
         """
         return self.damier.joueur_peut_prendre_une_piece_adverse(self.couleur_joueur_courant)
 
-    def sauvegarder(self, nom_fichier):
+    def sauvegarder(self, nom_fichier,historique):
         """
         Sauvegarde une partie dans un fichier. Le fichier condiendra:
         - Une ligne indiquant la couleur du joueur courant.
@@ -96,6 +96,7 @@ class Partie:
 
         :param nom_fichier: Le nom du fichier où sauvegarder.
         :type nom_fichier: string.
+        :param historique : Contient la liste des coups joués.
         """
         try:
             with open(nom_fichier, "w") as f:
@@ -106,6 +107,9 @@ class Partie:
                 else:
                     f.write("None\n")
                 f.writelines(self.damier.convertir_en_chaine())
+                f.write("#Coups joués\n")
+                f.write("{}\n".format(historique))
+                
         except:
             raise ProblemeSauvegarde("Problème lors de la sauvegarde.")
 
@@ -131,15 +135,20 @@ class Partie:
                 else:
                     ligne_string, colonne_string = position_string.split(",")
                     self.position_source_forcee = (int(ligne_string), int(colonne_string))
-                reste = f.read()
                 chaine = ""
-                for line in reste.split("\n"):
-                    if not "#" in line:
-                        chaine = chaine + line + "\n"
+                while 1:
+                    ligne=f.readline().rstrip("\n")#Lecture de la ligne suivante du fichier
+                    if ligne=='':
+                        break
+                    elif ligne=="#": # Début de la section historique
+                        reste=f.read() # Lire la fin du ficher qui contient l'historique
+                        self.historique = reste
+                        break
+                    elif ligne!="": #Détection de la non fin du fichier
+                        chaine= chaine + ligne + "\n"
                     else:
-                        self.historique = self.historique + line.replace("#","") + "\n"
-      
-                self.damier.charger_dune_chaine(chaine)
+                        break
+            self.damier.charger_dune_chaine(chaine)
         except:
             raise ProblemeChargement("Problème lors du chargement.")
 
