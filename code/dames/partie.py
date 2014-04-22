@@ -107,7 +107,7 @@ class Partie:
                 else:
                     f.write("None\n")
                 f.writelines(self.damier.convertir_en_chaine())
-                f.write("#Coups joués\n")
+                f.write("#\n")
                 f.write("{}\n".format(historique))
                 
         except:

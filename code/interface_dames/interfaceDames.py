@@ -292,6 +292,7 @@ class JeuDeDames:
                         currentPossibilities = self.partie.damier.lister_deplacements_possibles_a_partir_de_position(sourceInverse,doitPrendre)
                         if destInverse in currentPossibilities:
                             self.partie.damier.deplacer(sourceInverse,destInverse)
+                            self.Affiche_histo(sourceInverse, destInverse)
                             self.CalculPointage()
                             self.interface_damier.ActualiserPieces(True,False)
                             self.interface_damier.canvas.delete("selected")
@@ -330,11 +331,17 @@ class JeuDeDames:
         destination = bestMove[1]
         destinationInverse = (destination[1],destination[0])
         self.partie.damier.deplacer(source,destination)
+        self.Affiche_histo(source, destination)
         doitPrendre = self.partie.damier.position_peut_prendre_une_piece_adverse(destination)
         self.CalculPointage()
         self.interface_damier.ActualiserPieces(True,False)
         return doitPrendre
-               
+    
+    def Affiche_histo(self,source,destination):
+        """Affiche L'historique des coups dans la fenetre"""
+        chaine=self.etiq_joueur["text"] + str(source)+ " " + str(destination) + "\n"
+        self.historique.insert(END, chaine)
+        
 
     def MenuJeu(self, fenetre):
         
@@ -396,6 +403,7 @@ class JeuDeDames:
         
     def deplacerPiece(self,source,destination):
         self.interface_damier.damier.deplacer(source,destination)
+        
 
     def NouveauJeu(self):
         #Partie.nouvelle_partie
@@ -429,6 +437,7 @@ class JeuDeDames:
                 self.message["text"] =e.msg
 
     def ChargerJeuHistorique(self):
+        """ Charge une partie avec historique """
         self.partie.historique = ""
         self.historique.delete(1.0,END)
         fileName = filedialog.askopenfile(filetypes=[("Save Games", "*.sav")])
