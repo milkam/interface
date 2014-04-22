@@ -107,9 +107,9 @@ class Partie:
                 else:
                     f.write("None\n")
                 f.writelines(self.damier.convertir_en_chaine())
-                f.write("#\n")
-                f.write("{}\n".format(historique))
-                
+                if historique!="": #Controle si le joueur veut sauvegarder l'historique
+                    f.write("#\n") # début de la section de l'historique
+                    f.write("{}\n".format(historique))
         except:
             raise ProblemeSauvegarde("Problème lors de la sauvegarde.")
 

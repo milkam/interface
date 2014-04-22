@@ -89,7 +89,9 @@ class InterfaceDamier(tk.Frame):
         self.canvas.coords(nom_piece, x, y)
     
     def selectCase(self, position, color):
-        # Selection de la case (afficher d'une manière graphique la case selectionné)
+        """
+        Selection de la case (afficher d'une manière graphique la case selectionné)
+        """
         x1 = position[0] * self.taille_case
         x2 = x1+self.taille_case
         y1 = position[1]*self.taille_case
@@ -101,7 +103,7 @@ class InterfaceDamier(tk.Frame):
         self.canvas.tag_raise("piece")
 
     def ActualiserPieces(self,Create,new):
-        # On redessine les pieces
+        """ On redessine les pieces"""
         if new:
             self.damier.initialiser_damier_par_default()
         if Create:
@@ -157,8 +159,6 @@ class InterfaceDamier(tk.Frame):
 
 
 
-# Ajouts pour le TP4, idée de base...
-
 class JeuDeDames:
     def __init__(self):
         # On a besoin d'une fenêtre.
@@ -167,9 +167,9 @@ class JeuDeDames:
         self.historiqueCharge = []
         self.partieCharge = []
         self.currentSelectedPosition = []      
-        "définition des menus:"
-        self.MenuJeu(self.fenetre)
-        self.AI = True
+       
+        self.MenuJeu(self.fenetre) #définition des menus pour le jeu
+        self.AI = True # Variable pour le controle du jeu contre l'ordinateur
         
         
         # On a besoin d'une partie.
@@ -179,14 +179,7 @@ class JeuDeDames:
         self.interface_damier = InterfaceDamier(self.fenetre, 64,self.partie.damier)
         self.interface_damier.grid()
 
-        # Affichage du jouer à jouer ainsi que du nombre de pièces que chacun à mangé.
-        # Variable à utiliser pour afficher le joueur à jouer :
-        # self.etiq_joueur["text"] = ""
-        # Variable à utiliser pour afficher le pointage :
-        # joueur blanc : self.pointBlanc["text"] = ""
-        # joueur noir : self.pointNoir["text"] = ""
-        # message au joueur : self.message["text"] = "" ne pas mettre un message trop long ie : vous devez prendre\n un pion (un saut de ligne doit être là pour wrapper le text)
-        # historique de jeux : self.historique["text"] = ""   N'aficher que les 15 dernier move ie : blanc : 1,2 -> 2,3\nnoir : 5,4 -> 6,3\n
+        
         self.interface_droite = tk.LabelFrame(self.fenetre, borderwidth=1,relief=RAISED)
         self.interface_droite 
         #Joueur
@@ -239,7 +232,9 @@ class JeuDeDames:
         self.fenetre.mainloop()
 
     def getDamierSize(self):
-        # Le damier est carré donc on veut juste avoir la plus petite grosseur du damier pour connaitre sa grosseur
+        """
+        Le damier est carré donc on veut juste avoir la plus petite grosseur du damier pour connaitre sa grosseur
+        """
         damierwidth = self.interface_damier.winfo_width()
         damierheight = self.interface_damier.winfo_height()
         if damierwidth>damierheight:
@@ -248,16 +243,18 @@ class JeuDeDames:
             return damierwidth-12
 
     def getClickPosition(self, size, event):
-        # On trouve dans quel case exactement on click (Coordonnée x,y)
+        """
+        On trouve dans quel case exactement on click (Coordonnée x,y)
+        """
         x =   event.x // (size/8)
         y =   event.y // (size/8)
         return (int(x), int(y))
 
     def VerificationSelectionValide(self, position):
+        """ vérification de la selection """ 
         #position est inversé dans ce code par rapport à la partie
         self.message["text"] = ""
         positionInverse = (position[1],position[0])
-
         pieceChoisie = self.partie.damier.get_piece(positionInverse)
         try:
             self.partie.valider_position_source(positionInverse)
@@ -273,12 +270,14 @@ class JeuDeDames:
         
 
     def click(self, event):
-        # Au click (donc selection d'une piece) on trouve avec le click qu'elle case on a clicker et on "HighLight" cette case
+        """
+        Au click (donc selection d'une piece) on trouve avec le click qu'elle case on a clicker et on "HighLight" cette case
+        """
         self.GestionduJeux(event)
 
     def GestionduJeux(self, event):
+        """ Gestion du jeu principal """
         try:
-
             if event.widget.widgetName == "canvas":
                 damierSize = self.getDamierSize()
                 damierPosition = self.getClickPosition(damierSize,event)
@@ -313,7 +312,7 @@ class JeuDeDames:
                 self.aiPlay()
         except:
             if not self.VerifGagnant():
-                tk.messagebox.showwarning("NULE","La partie est nule\nDémarrez une nouvelle partie")
+                tk.messagebox.showwarning("NULLE","La partie est nulle\nDémarrez une nouvelle partie")
     
     def aiPlay(self):
         doitPrendre = self.partie.joueur_courant_peut_prendre_piece_adverse()
@@ -344,7 +343,7 @@ class JeuDeDames:
         
 
     def MenuJeu(self, fenetre):
-        
+        """ Déclaration du menu du jeu """
         mainmenu = tk.Menu(fenetre)  ## Barre de menu 
         menuPartie = tk.Menu(mainmenu)  ## Menu fils menuExample 
         menuPartie.add_command(label="Nouvelle Partie", command=self.NouveauJeu)
@@ -352,7 +351,7 @@ class JeuDeDames:
         menuPartie.add_command(label="Charger une Partie", command=self.ChargerJeu)
         menuPartie.add_command(label="Charger une Partie avec historique", command=self.ChargerJeuHistorique)
         menuPartie.add_command(label="Sauvegarder une partie", command=self.SauveJeu)
-        menuPartie.add_command(label="Sauvegarder une partie avec historique", command=self.SauveJeu)
+        menuPartie.add_command(label="Sauvegarder une partie avec historique", command=self.SauveJeuHistorique)
         menuPartie.add_command(label="Quitter", command=fenetre.destroy) 
   
         menuHelp = tk.Menu(mainmenu) ## Menu Fils 
@@ -363,18 +362,19 @@ class JeuDeDames:
         fenetre.config(menu = mainmenu)
         
     def aPropos(self):
+        """ Afiche la boite de dialogue sur la version du jeu """ 
         tk.messagebox.showinfo("A propos", "                     Version 1.0\n                     Conçu par\nJean-Francois Paty et Michel Tremblay")
     
 
     def ShowCurrentPlayer(self):
+        """ Affiche le joueur courant dans le cadre de la fenetre """
         self.etiq_joueur["text"] = self.partie.couleur_joueur_courant
-        #self.etiq_joueur.grid()
-        #self.etiq_joueur = tk.Label(self.joueur,text="", width=20)
         pass
     
 
     def VerifGagnant(self):
-        # Verification si il y a un Gagnant.
+        """ Vérification si il y a un gagnant """
+        
         if self.pointBlanc["text"] == '12':
             tk.messagebox.showinfo("Gagnant!!","Le joueur Blanc est Gagnant de la partie")
             self.message["text"] = "Partie gagné\npar le joueur\nBLANC"
@@ -386,7 +386,8 @@ class JeuDeDames:
 
 
     def CalculPointage(self):
-        # Calcul et affichage du Pointage
+        """ Calcul et affichage du pointage """
+        
         noir = 12
         blanc = 12
         for piece in self.partie.damier.cases.values():
@@ -406,6 +407,7 @@ class JeuDeDames:
         
 
     def NouveauJeu(self):
+        """ Démarre une nouvelle partie """
         #Partie.nouvelle_partie
         self.historique.delete(1.0,END)
         self.interface_damier.ActualiserPieces(True,True)
@@ -415,6 +417,7 @@ class JeuDeDames:
         self.AI = False
 
     def NouveauJeuAi(self):
+        """ Nouvelle partie contre l'ordinateur """
         #Partie.nouvelle_partie
         self.historique.delete(1.0,END)
         self.interface_damier.ActualiserPieces(True,True)
@@ -424,6 +427,7 @@ class JeuDeDames:
         self.AI = True
                 
     def ChargerJeu(self):
+        """ Charge une partie sans historique """
         self.partie.historique = ""
         fileName = filedialog.askopenfile(filetypes=[("Save Games", "*.sav")])
         if fileName!=None:
@@ -435,6 +439,8 @@ class JeuDeDames:
                 self.AI = False
             except ProblemeChargement as e:
                 self.message["text"] =e.msg
+            else:
+                self.message["text"] ="Chargement réussi"
 
     def ChargerJeuHistorique(self):
         """ Charge une partie avec historique """
@@ -449,10 +455,29 @@ class JeuDeDames:
                 self.CalculPointage()
             except ProblemeChargement as e:
                 self.message["text"] =e.msg
+            else:
+                self.message["text"] ="Chargement réussi"
            
         
     def SauveJeu(self):
         """ Sauvegarde une partie dans un ficher """
+        self.file_opt = options = {}
+        options['defaultextension'] = '.sav'
+        options['filetypes'] = [("Save Games", "*.sav")]
+        options['initialdir'] = 'C:\\'
+        options['initialfile'] = 'mySave.sav'
+        options['title'] = 'Sauvegarder votre Jeux de Dames'
+        filename=filedialog.asksaveasfile(mode='w', **self.file_opt)
+        if filename!=None:
+            try:
+                self.partie.sauvegarder(filename.name,"")
+            except ProblemeSauvegarde as e:
+                self.message["text"] = e.msg
+            else:
+                self.message["text"] ="Sauvegarde réussie"
+                
+    def SauveJeuHistorique(self):
+        """ Sauvegarde une partie dans un fichier avec l'historique"""
         self.file_opt = options = {}
         options['defaultextension'] = '.sav'
         options['filetypes'] = [("Save Games", "*.sav")]
@@ -467,32 +492,7 @@ class JeuDeDames:
                 self.message["text"] = e.msg
             else:
                 self.message["text"] ="Sauvegarde réussie"
-                
-
-    def SauveJeuHistorique(self):
-        """ Sauvegarde une partie avec historique dans un ficher """
-        
-        histo=self.historique.get(1.0, END)
-        self.file_opt = options = {}
-        options['defaultextension'] = '.sav'
-        options['filetypes'] = [("Save Games", "*.sav")]
-        options['initialdir'] = 'C:\\'
-        options['initialfile'] = 'mySave.sav'
-        options['title'] = 'Sauvegarder votre Jeux de Dames'
-        filename=filedialog.asksaveasfile(mode='w', **self.file_opt)
-        if filename!=None:
-            try:
-                self.partie.sauvegarder(filename.name)
-                fich=open(filename.name,"a")
-                fich.write("#Coups joués\n")
-                fich.write("{}\n".format(histo))
-                fich.close()
-            except ProblemeSauvegarde:
-                self.message["text"] = "Sauvegarde en échec !"
-            else:
-                self.message["text"] ="Sauvegarde réussie"
-    
-        
+   
         
         
         
