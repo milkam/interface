@@ -120,6 +120,7 @@ class Partie:
         :param nom_fichier: Le nom du fichier à charger.
         :type nom_fichier: string.
         """
+        avecHistorique = False
         try:
             with open(nom_fichier) as f:
                 self.couleur_joueur_courant = f.readline().rstrip("\n")
@@ -143,12 +144,14 @@ class Partie:
                     elif ligne=="#": # Début de la section historique
                         reste=f.read() # Lire la fin du ficher qui contient l'historique
                         self.historique = reste
+                        avecHistorique = True
                         break
                     elif ligne!="": #Détection de la non fin du fichier
                         chaine= chaine + ligne + "\n"
                     else:
                         break
             self.damier.charger_dune_chaine(chaine)
+            return avecHistorique
         except:
             raise ProblemeChargement("Problème lors du chargement.")
 

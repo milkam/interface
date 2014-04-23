@@ -430,35 +430,64 @@ class JeuDeDames:
         """ Charge une partie sans historique """
         self.partie.historique = ""
         fileName = filedialog.askopenfile(filetypes=[("Save Games", "*.sav")])
-        if fileName!=None:
-            try:
+        try:
+            if fileName!=None:
+            
                 self.historique.delete(1.0,END)
-                self.partie.charger(fileName.name)
-                self.interface_damier.ActualiserPieces(True,False)
-                self.CalculPointage()
-                self.AI = False
-            except ProblemeChargement as e:
-                self.message["text"] =e.msg
+                avecHistorique = self.partie.charger(fileName.name)
+                if avecHistorique:
+                    if not self.QuestionChargementErreur("Il y a un historique dans le fichier\nVoulez vous le charger quand même\nsans l'historique?"):
+                        raise ProblemeChargement("Chargement non complété\nIl contient un historique")
+                    else:
+                        self.ContinueChargement()
+                else:
+                    self.ContinueChargement()
+           
             else:
                 self.message["text"] ="Chargement réussi"
+        except ProblemeChargement as e:
+            self.message["text"] =e.msg
 
     def ChargerJeuHistorique(self):
         """ Charge une partie avec historique """
         self.partie.historique = ""
-        self.historique.delete(1.0,END)
         fileName = filedialog.askopenfile(filetypes=[("Save Games", "*.sav")])
-        if fileName!=None:
-            try:
-                self.partie.charger(fileName.name)
-                self.interface_damier.ActualiserPieces(True,False)
-                self.historique.insert(END, self.partie.historique)
-                self.CalculPointage()
-            except ProblemeChargement as e:
-                self.message["text"] =e.msg
+        try:
+            if fileName!=None:
+                self.historique.delete(1.0,END)
+                avecHistorique = self.partie.charger(fileName.name)
+                if not avecHistorique:
+                    if not self.QuestionChargementErreur("Il n'y a pas d'historique dans le fichier\nVoulez vous le charger quand même?"):
+                        raise ProblemeChargement("Chargement non complété\nIl contient aucun historique")    
+                    else:
+                        self.ContinueChargement()
+                else:
+                    self.ContinueChargement(True)
             else:
                 self.message["text"] ="Chargement réussi"
-           
-        
+        except ProblemeChargement as e:
+                self.message["text"] =e.msg
+    
+    def ContinueChargement(self,historique = False):
+        """Continue avec le chargement du jeux avec ou sans historique"""
+        try:
+            self.interface_damier.ActualiserPieces(True,False)
+            if historique:
+                self.historique.insert(END, self.partie.historique)
+            self.CalculPointage()
+        except ProblemeChargement as e:
+            self.message["text"] =e.msg
+        else:
+            self.message["text"] ="Chargement réussi"
+                     
+    def QuestionChargementErreur(self,message):
+        """Question à l'usager pour savoir si il veut charger le fichier quand même"""
+        result = tk.messagebox.askquestion("Chargement", message, icon='warning')
+        if result == "yes":
+            return True
+        else:
+            return False
+                    
     def SauveJeu(self):
         """ Sauvegarde une partie dans un ficher """
         self.file_opt = options = {}
